@@ -5,7 +5,7 @@ dest="./test/dump/rdf"
 timestamp() {
   date +"%d%m%y_%H-%M-%S"
 }
-for f in "$source"/*.json; do)
+for f in "$source"/*.json; do
   filename=$(basename "$f")
   extension="${filename##*.}"
   filename="${filename%.*}"
