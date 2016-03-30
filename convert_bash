@@ -5,42 +5,37 @@ dest="./test/dump/rdf"
 timestamp() {
   date +"%d%m%y_%H-%M-%S"
 }
-for dir in "$source"/*; do
-  if [ -d "$dir" ]; then
-    for f in "$dir"/*.txt; do
-      dirname=$(basename "$dir")
-      filename=$(basename "$f")
-      extension="${filename##*.}"
-      filename="${filename%.*}"
-      if [ ! -e "$dest/$dirname-$filename.ttl" ]; then
-          if [[ $filename == *"_adm0"* ]]
-            then
-              level=0
-            fi
-          if [[ $filename == *"_adm1"* ]]
-            then
-              level=1
-            fi
-          if [[ $filename == *"_adm2"* ]]
-            then
-              level=2
-            fi
-          if [[ $filename == *"_adm3"* ]]
-            then
-              level=3
-            fi
-          if [[ $filename == *"_adm4"* ]]
-            then
-              level=4
-            fi
-          if [[ $filename == *"_adm5"* ]]
-            then
-              level=5
-            fi
-        echo " coverting \"$f\" to RDF...";
-        ./geojson-rdf "$level" "$f" > "$dest/$dirname-$filename.ttl";
-        echo " done... RDF available at $dest/$dirname-$filename.ttl";
-      fi
-    done
+for f in "$source"/*.json; do)
+  filename=$(basename "$f")
+  extension="${filename##*.}"
+  filename="${filename%.*}"
+  if [ ! -e "$dest/$filename.ttl" ]; then
+      if [[ $filename == *"_adm0"* ]]
+        then
+          level=0
+        fi
+      if [[ $filename == *"_adm1"* ]]
+        then
+          level=1
+        fi
+      if [[ $filename == *"_adm2"* ]]
+        then
+          level=2
+        fi
+      if [[ $filename == *"_adm3"* ]]
+        then
+          level=3
+        fi
+      if [[ $filename == *"_adm4"* ]]
+        then
+          level=4
+        fi
+      if [[ $filename == *"_adm5"* ]]
+        then
+          level=5
+        fi
+    echo " coverting \"$f\" to RDF...";
+    ./geojson-rdf "$level" "$f" > "$dest/$filename.ttl";
+    echo " done... RDF available at $dest/$filename.ttl";
   fi
 done
