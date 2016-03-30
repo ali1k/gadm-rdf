@@ -1,0 +1,212 @@
+#!/usr/bin/env node
+if (process.argv.length < 4 || process.argv.length > 5) {
+  die('GADM geojson to RDF\n' +
+      'converts a list of GADM administrative areas' +
+      'to RDF TTL Format.\n\n' +
+      'usage: geojson-rdf [level] [file_or_uri_to_convert]');
+}
+var fs = require ('fs');
+var http = require ('http');
+var _ = require("lodash");
+
+var level = process.argv[2], source = process.argv[3];
+// Open HTTP stream if the source is a URL
+if (source.match(/^https?:\/\//))
+    http.request(source, processor).end();
+// Open a file stream otherwise
+else
+    processor(fs.readFileSync(source,'utf8'));
+
+/* Process the specified input */
+function processor(input) {
+    var currentObj = JSON.parse(input);
+    var prefixes = '@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> . @prefix geo: <http://www.w3.org/2003/01/geo/wgs84_pos#> . @prefix edm: <http://www.europeana.eu/schemas/edm/> . @prefix foaf: <http://xmlns.com/foaf/0.1/> . @prefix owl: <http://www.w3.org/2002/07/owl#> . @prefix xsd: <http://www.w3.org/2001/XMLSchema#> . @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> . @prefix skos: <http://www.w3.org/2004/02/skos/core#> . @prefix dcterms: <http://purl.org/dc/terms/> . @prefix geoV: <http://geo.risis.eu/vocabulary/gadm/> . @prefix geoR: <http://geo.risis.eu/gadm/> .';
+    console.log(prefixes);
+    var output = '';
+    if(parseInt(level) == 0){
+        _.forEach(currentObj.features, function(node, i) {
+            //console.log(counter + ':');
+            output =  'geoR:' + node.properties.ID_0 + ' a geoV:AdministrativeArea ; ';
+            output =  output + 'geoV:level "0"^^xsd:integer ; ';
+            output =  output + 'geoV:ISO "' + node.properties.ISO + '" ; ';
+            if(node.properties.NAME_ISO){
+                output =  output + 'geoV:NAME_ISO "' + node.properties.NAME_ISO+ '" ; ';
+            }
+            if(node.properties.NAME_ENGLI){
+                output =  output + 'dcterms:title "' + node.properties.NAME_ENGLI+ '" ; ';
+            }
+            if(node.properties.NAME_FAO){
+                output =  output + 'geoV:NAME_FAO "' + node.properties.NAME_FAO+ '" ; ';
+            }
+            if(node.properties.NAME_LOCAL){
+                output =  output + 'geoV:NAME_LOCAL "' + node.properties.NAME_LOCAL+ '" ; ';
+            }
+            if(node.properties.ISO2){
+                output =  output + 'geoV:ISO2 "' + node.properties.ISO2+ '" ; ';
+            }
+            output =  output + 'geoV:ID_0 "' + node.properties.ID_0+ '" ; ';
+
+            if(node.properties.WWW){
+                output =  output + 'geoV:WWW "' + node.properties.WWW+ '" ; ';
+            }
+            if(node.properties.FIPS){
+                output =  output + 'geoV:FIPS "' + node.properties.FIPS+ '" ; ';
+            }
+            if(node.properties.ISON){
+                output =  output + 'geoV:ISON "' + node.properties.ISON+ '" ; ';
+            }
+            if(node.properties.VALIDFR){
+                output =  output + 'geoV:VALIDFR "' + node.properties.VALIDFR+ '" ; ';
+            }
+            if(node.properties.VALIDTO){
+                output =  output + 'geoV:VALIDTO "' + node.properties.VALIDTO+ '" ; ';
+            }
+            if(node.properties.POP2000){
+                output =  output + 'geoV:POP2000 "' + node.properties.POP2000+ '" ; ';
+            }
+            if(node.properties.SQKM){
+                output =  output + 'geoV:SQKM "' + node.properties.SQKM+ '" ; ';
+            }
+            if(node.properties.POPSQKM){
+                output =  output + 'geoV:POPSQKM "' + node.properties.POPSQKM+ '" ; ';
+            }
+            if(node.properties.UNREGION1){
+                output =  output + 'geoV:UNREGION1 "' + node.properties.UNREGION1+ '" ; ';
+            }
+            if(node.properties.UNREGION2){
+                output =  output + 'geoV:UNREGION2 "' + node.properties.UNREGION2+ '" ; ';
+            }
+            if(node.properties.DEVELOPING){
+                output =  output + 'geoV:DEVELOPING "' + node.properties.DEVELOPING+ '" ; ';
+            }
+            if(node.properties.CIS){
+                output =  output + 'geoV:CIS "' + node.properties.CIS+ '" ; ';
+            }
+            if(node.properties.OECD){
+                output =  output + 'geoV:OECD "' + node.properties.OECD+ '" ; ';
+            }
+            if(node.properties.WBREGION){
+                output =  output + 'geoV:WBREGION "' + node.properties.WBREGION+ '" ; ';
+            }
+            if(node.properties.WBINCOME){
+                output =  output + 'geoV:WBINCOME "' + node.properties.WBINCOME+ '" ; ';
+            }
+            if(node.properties.WBDEBT){
+                output =  output + 'geoV:WBDEBT "' + node.properties.WBDEBT+ '" ; ';
+            }
+            if(node.properties.WBOTHER){
+                output =  output + 'geoV:WBOTHER "' + node.properties.WBOTHER+ '" ; ';
+            }
+            //console.log(node.properties.CODE_of_fu);
+            //console.log(node.properties.CLASS);
+            var pType = node.geometry.type;
+            //console.log(pType);
+            output =  output + 'geoV:shapeType "' + pType+ '" ; ';
+            if(pType === 'Polygon'){
+                var tmpp = [];
+                _.forEach(node.geometry.coordinates[0], function(coordinate, ii) {
+                    tmpp.push(coordinate.join(' '));
+                });
+                output =  output + 'geo:geometry "POLYGON((' + tmpp.join(',') + '))"^^<http://www.openlinksw.com/schemas/virtrdf#Geometry> .';
+                //console.log('POLYGON((' + tmpp.join(',') + '))');
+            } else if(pType === 'MultiPolygon'){
+                var tmppTop = [];
+                _.forEach(node.geometry.coordinates, function(coordinateset, ii) {
+                    var tmpp = [];
+                    _.forEach(coordinateset[0], function(coordinate, iii) {
+                        tmpp.push(coordinate.join(' '));
+                    });
+                    tmppTop.push('((' + tmpp.join(',') + '))');
+                });
+                output =  output + 'geo:geometry "MULTIPOLYGON(' + tmppTop.join(',') + ')"^^<http://www.openlinksw.com/schemas/virtrdf#Geometry> .';
+                //console.log('MULTIPOLYGON(' + tmppTop.join(',') + ')');
+            }
+            console.log(output);
+        });
+    }else{
+        _.forEach(currentObj.features, function(node, i) {
+            if(parseInt(level) == 1){
+                output =  'geoR:' + node.properties.ID_0 + '-' + node.properties.ID_1 + ' a geoV:AdministrativeArea ; ';
+                output =  output + 'geoV:parent0 geoR:' + node.properties.ID_0 + ' ; ';
+            }else if(parseInt(level) == 2){
+                output =  'geoR:' + node.properties.ID_0 + '-' + node.properties.ID_1 + '-' + node.properties.ID_2 + ' a geoV:AdministrativeArea ; ';
+                output =  output + 'geoV:parent1 geoR:' + node.properties.ID_0 + '-' + node.properties.ID_1 + ' ; ';
+                output =  output + 'geoV:parent0 geoR:' + node.properties.ID_0 + ' ; ';
+            }else if(parseInt(level) == 3){
+                output =  'geoR:' + node.properties.ID_0 + '-' + node.properties.ID_1 + '-' + node.properties.ID_2 + '-' + node.properties.ID_3 + ' a geoV:AdministrativeArea ; ';
+                node.properties.ID_2 + '-' + node.properties.ID_3 + ' ; ';
+               output =  output + 'geoV:parent2 geoR:' + node.properties.ID_0 + '-' + node.properties.ID_1 + '-' + node.properties.ID_2 + ' ; ';
+               output =  output + 'geoV:parent1 geoR:' + node.properties.ID_0 + '-' + node.properties.ID_1 + ' ; ';
+               output =  output + 'geoV:parent0 geoR:' + node.properties.ID_0 + ' ; ';
+            }else if(parseInt(level) == 4){
+                output =  'geoR:' + node.properties.ID_0 + '-' + node.properties.ID_1 + '-' + node.properties.ID_2 + '-' + node.properties.ID_3 + '-' + node.properties.ID_4 + ' a geoV:AdministrativeArea ; ';
+                output =  output + 'geoV:parent3 geoR:' + node.properties.ID_0 + '-' + node.properties.ID_1 + '-' + node.properties.ID_2 + '-' + node.properties.ID_3 + ' ; ';
+                output =  output + 'geoV:parent2 geoR:' + node.properties.ID_0 + '-' + node.properties.ID_1 + '-' + node.properties.ID_2 + ' ; ';
+                output =  output + 'geoV:parent1 geoR:' + node.properties.ID_0 + '-' + node.properties.ID_1 + ' ; ';
+                output =  output + 'geoV:parent0 geoR:' + node.properties.ID_0 + ' ; ';
+            }else if(parseInt(level) == 5){
+                output =  'geoR:' + node.properties.ID_0 + '-' + node.properties.ID_1 + '-' + node.properties.ID_2 + '-' + node.properties.ID_3 + '-' + node.properties.ID_4 + '-' + node.properties.ID_5 + ' a geoV:AdministrativeArea ; ';
+                output =  output + 'geoV:parent4 geoR:' + node.properties.ID_0 + '-' + node.properties.ID_1 + '-' + node.properties.ID_2 + '-' + node.properties.ID_3 + '-' + node.properties.ID_4 + ' ; ';
+                output =  output + 'geoV:parent3 geoR:' + node.properties.ID_0 + '-' + node.properties.ID_1 + '-' + node.properties.ID_2 + '-' + node.properties.ID_3 + ' ; ';
+                output =  output + 'geoV:parent2 geoR:' + node.properties.ID_0 + '-' + node.properties.ID_1 + '-' + node.properties.ID_2 + ' ; ';
+                output =  output + 'geoV:parent1 geoR:' + node.properties.ID_0 + '-' + node.properties.ID_1 + ' ; ';
+                output =  output + 'geoV:parent0 geoR:' + node.properties.ID_0 + ' ; ';
+            }
+            output =  output + 'geoV:level "'+level+'"^^xsd:integer ; ';
+            output =  output + 'geoV:ISO "' + node.properties.ISO + '" ; ';
+            if(node.properties['NAME_'+level]){
+                output =  output + 'dcterms:title "' + node.properties['NAME_'+level]+ '" ; ';
+            }
+            output =  output + 'geoV:ID_'+level+' "' + node.properties['ID_'+level]+ '" ; ';
+
+            if(node.properties['HASC_'+level]){
+                output =  output + 'geoV:HASC_'+level+' "' + node.properties['HASC_'+level]+ '" ; ';
+            }
+            if(node.properties['CCN_'+level]){
+                output =  output + 'geoV:CCN_'+level+' "' + node.properties['CCN_'+level]+ '" ; ';
+            }
+            if(node.properties['CCA_'+level]){
+                output =  output + 'geoV:CCA_'+level+' "' + node.properties['CCA_'+level]+ '" ; ';
+            }
+            if(node.properties['TYPE_'+level]){
+                output =  output + 'geoV:TYPE_'+level+' "' + node.properties['TYPE_'+level]+ '" ; ';
+            }
+            if(node.properties['ENGTYPE_'+level]){
+                output =  output + 'geoV:ENGTYPE_'+level+' "' + node.properties['ENGTYPE_'+level]+ '" ; ';
+            }
+            if(node.properties['VARNAME_'+level]){
+                output =  output + 'geoV:VARNAME_'+level+' "' + node.properties['VARNAME_'+level]+ '" ; ';
+            }
+            //console.log(node.properties.CODE_of_fu);
+            //console.log(node.properties.CLASS);
+            var pType = node.geometry.type;
+            //console.log(pType);
+            output =  output + 'geoV:shapeType "' + pType+ '" ; ';
+            if(pType === 'Polygon'){
+                var tmpp = [];
+                _.forEach(node.geometry.coordinates[0], function(coordinate, ii) {
+                    tmpp.push(coordinate.join(' '));
+                });
+                output =  output + 'geo:geometry "POLYGON((' + tmpp.join(',') + '))"^^<http://www.openlinksw.com/schemas/virtrdf#Geometry> .';
+                //console.log('POLYGON((' + tmpp.join(',') + '))');
+            } else if(pType === 'MultiPolygon'){
+                var tmppTop = [];
+                _.forEach(node.geometry.coordinates, function(coordinateset, ii) {
+                    var tmpp = [];
+                    _.forEach(coordinateset[0], function(coordinate, iii) {
+                        tmpp.push(coordinate.join(' '));
+                    });
+                    tmppTop.push('((' + tmpp.join(',') + '))');
+                });
+                output =  output + 'geo:geometry "MULTIPOLYGON(' + tmppTop.join(',') + ')"^^<http://www.openlinksw.com/schemas/virtrdf#Geometry> .';
+                //console.log('MULTIPOLYGON(' + tmppTop.join(',') + ')');
+            }
+            console.log(output);
+        });
+    }
+}
+/* Halt execution with an error message. */
+function die(message) {
+  console.log(message);
+  process.exit(1);
+}
